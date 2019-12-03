@@ -1,0 +1,121 @@
+# PROVIDERS
+
+provider "azurerm" {
+  version = ">=1.28.0"
+  client_id = "${var.CLIENT}"
+  client_secret = "${var.SECRET}"
+  subscription_id = "${var.SUBS}"
+  tenant_id = "${var.TENANT}"
+}
+
+# VARIABLES REQUIRED FOR AUTHENTICATION
+
+variable "CLIENT" {
+}
+
+variable "SECRET" {
+}
+
+variable "TENANT" {
+}
+
+variable "SUBS" {
+}
+
+# VARIABLES FOR RESOURCES
+
+variable "ssh_public_key" {
+  default = ""
+}
+
+variable "log_analytics_workspace_id" {
+  default = ""
+}
+
+# RESOURCE GROUP
+
+resource "azurerm_resource_group" "rg-kubernetes" {
+  name     = "rg-coreit-kubernetes-prod"
+  location = "UK South"
+}
+
+# NETWORKING
+
+resource "azurerm_virtual_network" "vnet-kubernetes" {
+  name                = "vnet-coreit-kubernetes-prod"
+  location            = "UK South"
+  resource_group_name = "${azurerm_resource_group.rg-kubernetes.name}"
+  address_space       = ["172.28.34.0/24"]
+
+  tags {
+        Tier = "Internal"
+        Environment = "Dev"
+        BudgetCode  = "10230"
+        Department = "CoreIT"
+        Description = "Test Kubernetes Cluster"
+        CreatedBy = "admin-catanab"
+        Service = "Kubernetes"
+  }
+}
+
+resource "azurerm_subnet" "sub-kubernetes" {
+  name                 = "sub-coreit-kubernetes-prod"
+  resource_group_name  = "${azurerm_resource_group.rg-kubernetes.name}"
+  address_prefix       = "172.28.254.0/26"
+  virtual_network_name = "${azurerm_virtual_network.vnet-kubernetes.name}"
+}
+
+# CLUSTER
+
+resource "azurerm_kubernetes_cluster" "cl-kubernetes-test" {
+  name                = "cluster-coreit-kubernetes"
+  location            = "${azurerm_resource_group.rg-kubernetes.location}"
+  resource_group_name = "${azurerm_resource_group.rg-kubernetes.name}"
+  dns_prefix          = "k8s"
+
+  addon_profile {
+    oms_agent {
+      enabled = true
+      log_analytics_workspace_id = "${var.log_analytics_workspace_id}"
+    }
+  }
+
+  linux_profile {
+    admin_username = "ansible"
+
+    ssh_key {
+      key_data = "${var.ssh_public_key}"
+    }
+  }
+
+  agent_pool_profile {
+    name            = "akscompute"
+    count           = 2
+    vm_size         = "Standard_D1_v2"
+    os_type         = "Linux"
+    os_disk_size_gb = 30
+    vnet_subnet_id = "${azurerm_subnet.sub-kubernetes.id}"
+  }
+
+  service_principal {
+   client_id     = "${var.CLIENT}"
+   client_secret = "${var.SECRET}"
+   }
+
+  tags {
+        Environment = "Prod"
+        BudgetCode  = "10230"
+        Department = "CoreIT"
+        Description = "Prod Kubernetes Cluster"
+        CreatedBy = "admin-catanab"
+        Service = "Kubernetes"
+  }
+}
+
+output "client_certificate" {
+  value = "${azurerm_kubernetes_cluster.cl-kubernetes-test.kube_config.0.client_certificate}"
+}
+
+output "kube_config" {
+  value = "${azurerm_kubernetes_cluster.cl-kubernetes-test.kube_config_raw}"
+}
