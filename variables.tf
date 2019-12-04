@@ -1,72 +1,52 @@
-#VARIABLES
+#Resource Group & Tags
 
-variable "client_id" {
-}
-
-variable "client_secret" {
-}
-
-variable "tenant_id" {
-}
-
-variable "subscription_id" {
-}
-
-variable "main_resource_group" {
-}
-
-variable "main_resource_group_location" {
-	default     = "UK South"
-}
-
-variable "main_vnet_name" {
-}
-
-variable "main_vnet_space" {
-	default = "172.28.32.0/19"
-}
-
-variable "aks_subnet_address" {
-	default = "172.28.34.0/24"
-}
-
-variable "aks_name" { }
-
-variable "aks_dns_prefix" { }
-
-variable "aks_linux_admin" {
-  default = "ansible"
-}
-
-variable "aks_linux_ssh_key" {
+variable "azurerm_resource_group_name" {
   default = ""
 }
 
-variable "aks_agent_size" {
-  default = "Standard_DS1_v2"
+variable "azurerm_resource_group_location" {
+  default = "North Europe"
 }
 
-variable "aks_agent_pool" {
-  default = "agentpool"
-}
-
-variable "aks_agent_count" {
-  default = "1"
-}
-
-variable "aks_agent_count_max" {
-  default = "4"
-}
-
-variable "autoscaler_version" {
-  default = "v1.13.0"
-}
-
-variable "aks_version" {
-  default = "1.11.5"
-}
-
-
-variable "log_analytics_workspace_id" {
+variable "azure_environment" {
   default = ""
+}
+
+variable "azure_costcentre" {
+  default = ""
+}
+
+#Networking
+
+variable "azurerm_route_table_name" {
+  default = ""
+}
+
+variable "azurerm_subnet_id" {
+  default = ""
+}
+
+variable "azurerm_dns_service_ip" {
+  default = "192.168.188.10"
+}
+
+variable "azurerm_service_cidr" {
+  default = "192.168.188.0/23"
+}
+
+variable "azurerm_docker_bridge_cidr" {
+  default = "172.172.0.10/23"
+}
+
+#AKS
+variable "azurerm_aks_name" {
+  default = ""
+}
+
+variable "azurerm_k8s_version" {
+  default = "1.13.12"
+}
+
+variable "azurerm_pool_count" {
+  default = 3
 }
